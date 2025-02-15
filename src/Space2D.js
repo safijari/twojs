@@ -17,6 +17,10 @@ export class Space2D {
         this.objects = new Map();
         this.selectedObjects = new Set();
         
+        this.dragging = false;
+        this.draggedObject = null;
+        this.dragOffset = new THREE.Vector3();
+        
         this.setupRenderer(container);
         this.setupCamera();
         this.setupControls();
@@ -30,6 +34,10 @@ export class Space2D {
         container.appendChild(this.renderer.domElement);
         
         this.renderer.domElement.addEventListener('click', this.handleClick.bind(this));
+        this.renderer.domElement.addEventListener('mousedown', this.handleMouseDown.bind(this));
+        this.renderer.domElement.addEventListener('mousemove', this.handleMouseMove.bind(this));
+        this.renderer.domElement.addEventListener('mouseup', this.handleMouseUp.bind(this));
+        this.renderer.domElement.addEventListener('contextmenu', this.handleContextMenu.bind(this));
     }
 
     setupCamera() {
@@ -134,5 +142,106 @@ export class Space2D {
                 this.select(clickedObject[0]);
             }
         }
+    }
+
+    handleMouseDown(event) {
+        const rect = this.renderer.domElement.getBoundingClientRect();
+        const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera({ x, y }, this.camera);
+
+        const meshes = Array.from(this.objects.values()).map(obj => obj.mesh);
+        const intersects = raycaster.intersectObjects(meshes);
+
+        if (intersects.length > 0) {
+            const clickedMesh = intersects[0].object;
+            const clickedObject = Array.from(this.objects.entries())
+                .find(([_, obj]) => obj.mesh === clickedMesh);
+
+            if (clickedObject) {
+                this.dragging = true;
+                this.draggedObject = clickedObject[1];
+                this.dragOffset.copy(intersects[0].point).sub(clickedMesh.position);
+            }
+        }
+
+        if (event.button === 0) { // Left mouse button
+            this.dragging = true;
+            this.dragStart = { x: event.clientX, y: event.clientY };
+        }
+    }
+
+    handleMouseMove(event) {
+        if (!this.dragging || !this.draggedObject) return;
+
+        const rect = this.renderer.domElement.getBoundingClientRect();
+        const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera({ x, y }, this.camera);
+
+        const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+        const intersection = new THREE.Vector3();
+        raycaster.ray.intersectPlane(plane, intersection);
+
+        this.draggedObject.mesh.position.copy(intersection.sub(this.dragOffset));
+
+        if (this.dragging && this.dragStart) {
+            this.drawSelectionBox(this.dragStart, { x: event.clientX, y: event.clientY });
+        }
+    }
+
+    handleMouseUp(event) {
+        this.dragging = false;
+        this.draggedObject = null;
+
+        if (this.dragging && this.dragStart) {
+            this.selectObjectsInBox(this.dragStart, { x: event.clientX, y: event.clientY });
+            this.dragging = false;
+            this.dragStart = null;
+        }
+    }
+
+    handleContextMenu(event) {
+        event.preventDefault();
+        this.clearSelection();
+    }
+
+    drawSelectionBox(start, end) {
+        // Implement drawing of selection box on the screen
+    }
+
+    selectObjectsInBox(start, end) {
+        const rect = this.renderer.domElement.getBoundingClientRect();
+        const x1 = ((start.x - rect.left) / rect.width) * 2 - 1;
+        const y1 = -((start.y - rect.top) / rect.height) * 2 + 1;
+        const x2 = ((end.x - rect.left) / rect.width) * 2 - 1;
+        const y2 = -((end.y - rect.top) / rect.height) * 2 + 1;
+
+        const minX = Math.min(x1, x2);
+        const maxX = Math.max(x1, x2);
+        const minY = Math.min(y1, y2);
+        const maxY = Math.max(y1, y2);
+
+        const meshes = Array.from(this.objects.values()).map(obj => obj.mesh);
+        const raycaster = new THREE.Raycaster();
+
+        meshes.forEach(mesh => {
+            const position = new THREE.Vector3();
+            mesh.getWorldPosition(position);
+            const screenPosition = position.project(this.camera);
+
+            if (screenPosition.x >= minX && screenPosition.x <= maxX &&
+                screenPosition.y >= minY && screenPosition.y <= maxY) {
+                const object = Array.from(this.objects.entries())
+                    .find(([_, obj]) => obj.mesh === mesh);
+                if (object) {
+                    this.select(object[0]);
+                }
+            }
+        });
     }
 }

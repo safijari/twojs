@@ -15,6 +15,10 @@ export class BaseObject {
         }
     }
 
+    deselect() {
+        this.setSelected(false);
+    }
+
     updateProperties(properties) {
         Object.assign(this.properties, properties);
         if (properties.color) {
