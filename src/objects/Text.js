@@ -1,3 +1,6 @@
+import * as THREE from 'three';
+import { BaseObject } from './BaseObject.js';
+
 export class Text extends BaseObject {
     constructor(text = "Text", properties = {}) {
         super();

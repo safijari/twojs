@@ -1,3 +1,6 @@
+import * as THREE from 'three';
+import { BaseObject } from './BaseObject.js';
+
 export class Circle extends BaseObject {
     constructor(radius = 1, properties = {}) {
         super();

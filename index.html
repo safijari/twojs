@@ -31,10 +31,10 @@
         const container = document.getElementById('container');
         const space = new Space2D(container);
         
-        window.addCircle = () => space.add(new Circle());
-        window.addRectangle = () => space.add(new Rectangle());
-        window.addLine = () => space.add(new Line());
-        window.addText = () => space.add(new Text());
+        globalThis.addCircle = () => space.add(new Circle());
+        globalThis.addRectangle = () => space.add(new Rectangle());
+        globalThis.addLine = () => space.add(new Line());
+        globalThis.addText = () => space.add(new Text());
     </script>
 </body>
 </html>

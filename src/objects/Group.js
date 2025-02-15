@@ -1,3 +1,6 @@
+import * as THREE from 'three';
+import { BaseObject } from './BaseObject.js';
+
 export class Group extends BaseObject {
     constructor(objects = [], properties = {}) {
         super();

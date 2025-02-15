@@ -1,3 +1,6 @@
+import * as THREE from 'three';
+import { BaseObject } from './BaseObject.js';
+
 export class Rectangle extends BaseObject {
     constructor(width = 1, height = 1, properties = {}) {
         super();

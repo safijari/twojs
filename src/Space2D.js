@@ -1,5 +1,13 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { Circle } from './objects/Circle.js';
+import { Rectangle } from './objects/Rectangle.js';
+import { Line } from './objects/Line.js';
+import { Text } from './objects/Text.js';
+import { Group } from './objects/Group.js';
+
+// Ensure Circle is correctly exported
+export { Circle, Rectangle, Line, Text, Group };
 
 export class Space2D {
     constructor(container) {
